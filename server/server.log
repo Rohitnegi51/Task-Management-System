@@ -1,0 +1,32 @@
+
+> app@1.0.0 dev
+> nodemon src/index.ts
+
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: ts,json[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ override existing { override: true }
+Server is running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ override existing { ov◇ injecting env (0) from .env // tip: ◈ en[32m[nodemon] clean exit - waiting for changes before restart[32m[[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon[32m[nodemon] restarting due to change◇ injecting env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+[32m[nodemon] restarting due to changes...[39[[32m[nodemon] restarting due to changes...[39[[32m[nodemon] starting `ts-node src/index.ts`[39\xe2\x97◇ injecting env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+m]
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+ng for changes before restart[39m

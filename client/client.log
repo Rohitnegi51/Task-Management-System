@@ -1,0 +1,22 @@
+
+> client@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.3
+  - Local:        http://localhost:3001
+
+ ✓ Starting...
+ ✓ Ready in 1995ms
+ ○ Compiling /src/middleware ...
+ ✓ Compiled /src/middleware in 927ms (73 modules)
+ ○ Compiling /login ...
+ ✓ Compiled /login in 7.2s (738 modules)
+ GET /login 200 in 8195ms
+ ✓ Compiled in 951ms (319 modules)
+ ✓ Compiled in 567ms (729 modules)
+ GET /login 200 in 188ms
+ ✓ Compiled in 731ms (305 modules)
+ ✓ Compiled in 121ms (305 modules)
+ ✓ Compiled /login in 394ms (410 modules)
+ GET /login 200 in 607ms
+ ✓ Compiled in 583ms (319 modules)
