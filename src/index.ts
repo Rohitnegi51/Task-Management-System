@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import { PrismaClient } from '@prisma/client';
 import authRoutes from './routes/authRoutes';
+import taskRoutes from './routes/taskRoutes';
+import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
 
@@ -18,11 +20,15 @@ app.use(cookieParser());
 
 // Routes
 app.use('/auth', authRoutes);
+app.use('/tasks', taskRoutes);
 
 // Basic Route
 app.get('/', (req: Request, res: Response) => {
   res.send('Task Management System API is running');
 });
+
+// Error Handling Middleware (must be registered last)
+app.use(errorHandler);
 
 // Start Server
 app.listen(port, () => {
