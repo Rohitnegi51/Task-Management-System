@@ -18,15 +18,16 @@ Server is running on port 5000
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `ts-node src/index.ts`[39m
 [32m[nodemon] restarting due to changes...[39[[32m[nodemon] restarting due to changes...[39[[32m[nodemon] starting `ts-node src/index.ts`[39\xe2\x97◇ injecting env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
-Server is running on port 5000
-[32m[nodemon] clean exit - waiting for changes before restart[39m
-m]
-Server is running on port 5000
-[32m[nodemon] clean exit - waiting for changes before restart[39m[32m[nodemon] restarting due to changes...[39m
+Server is running [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `ts-node src/index.ts`[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ multiple files { path: ['.env.local',◇ injecting env (0) from .env // tip: \xe2\x8c[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+-node src/index.ts`[39m
 ◇ injecting env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m
-ng for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ override existing { override: true }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
