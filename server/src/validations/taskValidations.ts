@@ -28,5 +28,4 @@ export const getTasksQuerySchema = z.object({
   limit: z.string().regex(/^\d+$/).optional().default('10').transform(Number),
   status: TaskStatusEnum.optional(),
   search: z.string().optional(),
-  date: z.string().optional(),
 });

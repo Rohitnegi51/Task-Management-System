@@ -18,14 +18,10 @@ export const validateRequest = (schemas: ValidationSchemas) => {
         req.body = await schemas.body.parseAsync(req.body);
       }
       if (schemas.query) {
-        const validatedQuery = await schemas.query.parseAsync(req.query) as any;
-        Object.keys(req.query as any).forEach(key => delete (req.query as any)[key]);
-        Object.assign(req.query, validatedQuery);
+        req.query = (await schemas.query.parseAsync(req.query)) as any;
       }
       if (schemas.params) {
-        const validatedParams = await schemas.params.parseAsync(req.params) as any;
-        Object.keys(req.params as any).forEach(key => delete (req.params as any)[key]);
-        Object.assign(req.params, validatedParams);
+        req.params = (await schemas.params.parseAsync(req.params)) as any;
       }
       next();
     } catch (error) {

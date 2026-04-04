@@ -14,7 +14,6 @@ model User {
   password      String
   name          String?
   tasks         Task[]
-  progress      DailyProgress[]
   refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -54,17 +53,4 @@ model Task {
   user        User         @relation(fields: [userId], references: [id])
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-}
-
-model DailyProgress {
-  id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id])
-  date            DateTime @db.Date
-  completedTasks  Int      @default(0)
-  failedTasks     Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  @@unique([userId, date])
 }

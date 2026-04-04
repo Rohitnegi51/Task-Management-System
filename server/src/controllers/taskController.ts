@@ -33,7 +33,7 @@ export const getTasks = async (
   try {
     const userId = req.user!.userId;
     // Zod transforms these to numbers and provides defaults
-    const { page, limit, status, search, date } = req.query as any;
+    const { page, limit, status, search } = req.query as any;
 
     const skip = (page - 1) * limit;
 
@@ -43,18 +43,6 @@ export const getTasks = async (
 
     if (status) {
       whereClause.status = status;
-    }
-
-    if (date) {
-      // Create a Date range for the entire day (00:00:00 to 23:59:59)
-      const startDate = new Date(date);
-      startDate.setUTCHours(0, 0, 0, 0);
-      const endDate = new Date(date);
-      endDate.setUTCHours(23, 59, 59, 999);
-      whereClause.dueDate = {
-        gte: startDate,
-        lte: endDate,
-      };
     }
 
     if (search) {
@@ -69,7 +57,7 @@ export const getTasks = async (
         where: whereClause,
         skip,
         take: limit,
-        orderBy: { dueDate: 'asc' },
+        orderBy: { createdAt: 'desc' },
       }),
       prisma.task.count({ where: whereClause }),
     ]);
@@ -151,17 +139,6 @@ export const toggleTaskStatus = async (
       data: { status: newStatus },
     });
 
-    // Handle Progress Record updating
-    const progressDate = new Date();
-    progressDate.setUTCHours(0,0,0,0);
-    
-    const incrementAmount = newStatus === 'COMPLETED' ? 1 : -1;
-    await prisma.dailyProgress.upsert({
-      where: { userId_date: { userId, date: progressDate } },
-      update: { completedTasks: { increment: incrementAmount } },
-      create: { userId, date: progressDate, completedTasks: newStatus === 'COMPLETED' ? 1 : 0 },
-    });
-
     res.json(updatedTask);
   } catch (error) {
     next(error);
@@ -192,63 +169,6 @@ export const deleteTask = async (
     await prisma.task.delete({ where: { id: taskId } });
 
     res.status(204).send();
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const cleanupTasks = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): Promise<void> => {
-  try {
-    const userId = req.user!.userId;
-    
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
-
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    // 1. Delete all completed tasks from before today
-    await prisma.task.deleteMany({
-      where: {
-        userId,
-        status: 'COMPLETED',
-        dueDate: { lt: today }
-      }
-    });
-
-    // 2. Identify incomplete tasks older than yesterday (2+ days old)
-    const oldIncompleteTasks = await prisma.task.findMany({
-      where: {
-        userId,
-        status: { not: 'COMPLETED' },
-        dueDate: { lt: yesterday }
-      }
-    });
-
-    if (oldIncompleteTasks.length > 0) {
-       for (const task of oldIncompleteTasks) {
-         if (!task.dueDate) continue;
-         const taskDate = new Date(task.dueDate);
-         taskDate.setUTCHours(0, 0, 0, 0);
-
-         await prisma.dailyProgress.upsert({
-           where: { userId_date: { userId, date: taskDate } },
-           update: { failedTasks: { increment: 1 } },
-           create: { userId, date: taskDate, failedTasks: 1 },
-         });
-       }
-
-       const taskIds = oldIncompleteTasks.map(t => t.id);
-       await prisma.task.deleteMany({
-         where: { id: { in: taskIds } }
-       });
-    }
-
-    res.json({ message: 'Cleanup complete' });
   } catch (error) {
     next(error);
   }
