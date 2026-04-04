@@ -12,10 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Plus, Loader2, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
-import { MissedTasksModal } from '@/components/MissedTasksModal';
 
-export default function Dashboard() {
+export default function ScheduledDashboard() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -24,18 +22,17 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
-  // Fetch Tasks
+  // Fetch Tasks with SCHEDULED scope
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['tasks', { scope: 'TODAY', page, search, status: statusFilter === 'ALL' ? undefined : statusFilter }],
+    queryKey: ['tasks', { scope: 'SCHEDULED', page, search, status: statusFilter === 'ALL' ? undefined : statusFilter }],
     queryFn: () => getTasks({
-      scope: 'TODAY',
+      scope: 'SCHEDULED',
       page,
       search,
       status: statusFilter === 'ALL' ? undefined : statusFilter
     }),
   });
 
-  // Create/Update Task Mutation
   const saveTaskMutation = useMutation({
     mutationFn: (variables: { id?: string; data: TaskFormValues }) => {
       if (variables.id) {
@@ -52,7 +49,6 @@ export default function Dashboard() {
     onError: () => toast.error('Failed to save task.'),
   });
 
-  // Delete Task Mutation
   const deleteTaskMutation = useMutation({
     mutationFn: deleteTask,
     onSuccess: () => {
@@ -62,13 +58,12 @@ export default function Dashboard() {
     onError: () => toast.error('Failed to delete task.'),
   });
 
-  // Toggle Task Optimistically
   const toggleTaskMutation = useMutation({
     mutationFn: toggleTaskStatus,
     onMutate: async (taskId) => {
       await queryClient.cancelQueries({ queryKey: ['tasks'] });
 
-      const queryKey = ['tasks', { scope: 'TODAY', page, search, status: statusFilter === 'ALL' ? undefined : statusFilter }];
+      const queryKey = ['tasks', { scope: 'SCHEDULED', page, search, status: statusFilter === 'ALL' ? undefined : statusFilter }];
       const previousData = queryClient.getQueryData(queryKey);
 
       queryClient.setQueryData(queryKey, (old: any) => {
@@ -80,21 +75,18 @@ export default function Dashboard() {
             : task
         );
 
-        // Re-sort the list instantly so the UI snaps into place based on backend rules:
-        // 1. Status (PENDING/IN_PROGRESS first, COMPLETED last)
-        // 2. Priority (HIGH, MEDIUM, LOW)
         const priorityWeight: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
 
         updatedData.sort((a: Task, b: Task) => {
-          // Sort by completion status first
-          const aIsCompleted = a.status === 'COMPLETED';
-          const bIsCompleted = b.status === 'COMPLETED';
+          // In SCHEDULED view, sort by closest dueDate first, then priority
+          const dateA = a.dueDate ? new Date(a.dueDate).getTime() : Infinity;
+          const dateB = b.dueDate ? new Date(b.dueDate).getTime() : Infinity;
 
-          if (aIsCompleted !== bIsCompleted) {
-            return aIsCompleted ? 1 : -1;
+          if (dateA !== dateB) {
+            return dateA - dateB;
           }
 
-          // If completion status is the same, sort by priority
+          // If same date, sort by priority
           return priorityWeight[b.priority] - priorityWeight[a.priority];
         });
 
@@ -126,36 +118,41 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const totalTasks = data?.data.length || 0;
-  const completedTasks = data?.data.filter(t => t.status === 'COMPLETED').length || 0;
-  const progressPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+  // Group tasks by their human-readable date
+  const groupedTasks = data?.data.reduce((groups: Record<string, Task[]>, task) => {
+    const dateStr = task.dueDate
+      ? new Date(task.dueDate).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+      : 'No Date Set';
+
+    if (!groups[dateStr]) {
+      groups[dateStr] = [];
+    }
+    groups[dateStr].push(task);
+    return groups;
+  }, {});
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
-      <MissedTasksModal />
       <Navbar />
 
       <div className="flex-1 px-4 py-8 md:px-8 max-w-7xl mx-auto w-full">
         <main className="flex flex-col gap-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="text-3xl font-bold tracking-tight">Today</h1>
-              <p className="text-sm text-muted-foreground">{completedTasks} of {totalTasks} tasks completed.</p>
+              <h1 className="text-3xl font-bold tracking-tight">Scheduled</h1>
+              <p className="text-sm text-muted-foreground">Upcoming tasks for tomorrow and beyond.</p>
             </div>
             <Button onClick={() => { setTaskToEdit(null); setIsModalOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" /> New Task
+              <Plus className="mr-2 h-4 w-4" /> Schedule Task
             </Button>
           </div>
 
-          <Progress value={progressPercentage} className="h-2 w-full" />
-
-          {/* Filters and Search Bar row */}
           <div className="flex flex-col sm:flex-row items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border/50">
             <div className="relative w-full sm:max-w-xs">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search tasks..."
+                placeholder="Search future tasks..."
                 className="w-full bg-background pl-8 shadow-none"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -182,37 +179,43 @@ export default function Dashboard() {
             </div>
           ) : isError ? (
              <div className="flex h-[400px] items-center justify-center text-destructive">
-               Failed to load tasks.
+               Failed to load scheduled tasks.
              </div>
           ) : data?.data.length === 0 ? (
             <div className="flex h-[400px] flex-col items-center justify-center rounded-lg border border-dashed bg-card shadow-sm">
               <div className="flex flex-col items-center gap-1 text-center">
-                <h3 className="text-2xl font-bold tracking-tight">You have no tasks</h3>
+                <h3 className="text-2xl font-bold tracking-tight">Your future is clear</h3>
                 <p className="text-sm text-muted-foreground">
-                  You can start organizing your life right now.
+                  You have no tasks scheduled for upcoming days.
                 </p>
                 <Button className="mt-4" onClick={() => { setTaskToEdit(null); setIsModalOpen(true); }}>
-                  Add Task
+                  Schedule Task
                 </Button>
               </div>
             </div>
           ) : (
-            <>
-              <div className="flex flex-col gap-3 mt-4">
-                {data?.data.map((task) => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    onToggle={(id) => toggleTaskMutation.mutate(id)}
-                    onDelete={(id) => deleteTaskMutation.mutate(id)}
-                    onEdit={openEditModal}
-                  />
-                ))}
-              </div>
+            <div className="flex flex-col gap-8 mt-4">
+              {groupedTasks && Object.entries(groupedTasks).map(([date, tasks]) => (
+                <div key={date} className="flex flex-col gap-3">
+                  <h3 className="sticky top-14 z-10 bg-background/95 backdrop-blur py-2 text-lg font-semibold tracking-tight text-foreground border-b">
+                    {date}
+                  </h3>
+                  <div className="flex flex-col gap-3">
+                    {tasks.map((task) => (
+                      <TaskCard
+                        key={task.id}
+                        task={task}
+                        onToggle={(id) => toggleTaskMutation.mutate(id)}
+                        onDelete={(id) => deleteTaskMutation.mutate(id)}
+                        onEdit={openEditModal}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
 
-              {/* Pagination controls */}
               {data?.meta && data.meta.totalPages > 1 && (
-                <div className="flex justify-center gap-2 mt-4">
+                <div className="flex justify-center gap-2 mt-4 pt-4 border-t">
                   <Button
                     variant="outline"
                     disabled={page === 1}
@@ -232,7 +235,7 @@ export default function Dashboard() {
                   </Button>
                 </div>
               )}
-            </>
+            </div>
           )}
         </main>
       </div>

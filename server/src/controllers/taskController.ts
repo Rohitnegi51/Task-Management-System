@@ -33,7 +33,7 @@ export const getTasks = async (
   try {
     const userId = req.user!.userId;
     // Zod transforms these to numbers and provides defaults
-    const { page, limit, status, search } = req.query as any;
+    const { page, limit, status, search, scope } = req.query as any;
 
     const skip = (page - 1) * limit;
 
@@ -52,21 +52,75 @@ export const getTasks = async (
       ];
     }
 
+    // Set up the scope logic for filtering due dates
+    const now = new Date();
+    const endOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999,
+    );
+
+    if (scope === 'TODAY') {
+      whereClause.OR = whereClause.OR || [];
+      // Today scope: due date is null, OR due date is today or earlier
+      // Actually, if it's earlier, it should have been caught by "Missed Tasks"
+      // But we will show them here just in case they ignored the modal.
+      const dateCondition: Prisma.TaskWhereInput = {
+        OR: [{ dueDate: null }, { dueDate: { lte: endOfToday } }],
+      };
+
+      // Merge dateCondition into whereClause
+      if (whereClause.OR && whereClause.OR.length > 0) {
+        whereClause.AND = [{ OR: whereClause.OR }, dateCondition];
+        delete whereClause.OR;
+      } else {
+        whereClause.OR = dateCondition.OR;
+      }
+
+      // Exclude archived tasks from TODAY view
+      if (!status) {
+        whereClause.status = { not: 'ARCHIVED' };
+      }
+    } else if (scope === 'SCHEDULED') {
+      // Scheduled scope: strictly greater than end of today
+      // Wait, if it's tomorrow, its due date > endOfToday
+      whereClause.dueDate = { gt: endOfToday };
+
+      // Exclude archived tasks from SCHEDULED view
+      if (!status) {
+        whereClause.status = { not: 'ARCHIVED' };
+      }
+    }
+
+    // Determine Sorting
+    let orderBy:
+      | Prisma.TaskOrderByWithRelationInput
+      | Prisma.TaskOrderByWithRelationInput[] = [];
+
+    if (scope === 'SCHEDULED') {
+      orderBy = [
+        { dueDate: 'asc' }, // Closest date/time first
+        { priority: 'desc' }, // HIGH -> MEDIUM -> LOW
+        { createdAt: 'desc' },
+      ];
+    } else {
+      orderBy = [
+        { status: 'asc' }, // PENDING -> IN_PROGRESS -> COMPLETED
+        { priority: 'desc' }, // HIGH -> MEDIUM -> LOW
+        { createdAt: 'desc' },
+      ];
+    }
+
     const [tasks, total] = await Promise.all([
       prisma.task.findMany({
         where: whereClause,
         skip,
         take: limit,
-        orderBy: [
-          // Sort by status: PENDING -> IN_PROGRESS -> COMPLETED
-          { status: 'asc' },
-          // Then by priority: HIGH -> MEDIUM -> LOW (descending order essentially, since HIGH is lexicographically 'H' < 'M' < 'L'? Actually, enum sorting in Prisma Postgres is by definition order in schema if it's a native enum, or alphabetical if it's text. Let's sort by priority).
-          // Wait, 'HIGH' vs 'LOW'. Alphabetical: H, L, M. That's wrong.
-          // In Prisma, Enums are sorted by the order they are defined in the schema.
-          // Schema: LOW, MEDIUM, HIGH. So 'desc' will sort HIGH -> MEDIUM -> LOW.
-          { priority: 'desc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy,
       }),
       prisma.task.count({ where: whereClause }),
     ]);

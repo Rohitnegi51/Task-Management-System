@@ -33,6 +33,7 @@ export const getTasksQuerySchema = z.object({
   limit: z.string().regex(/^\d+$/).optional().default('10').transform(Number),
   status: TaskStatusEnum.optional(),
   search: z.string().optional(),
+  scope: z.enum(['TODAY', 'SCHEDULED', 'ALL']).optional().default('ALL'),
 });
 
 export const syncMissedTasksSchema = z.object({

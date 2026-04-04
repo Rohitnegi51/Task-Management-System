@@ -16,6 +16,7 @@ export interface GetTasksParams {
   limit?: number;
   search?: string;
   status?: string;
+  scope?: 'TODAY' | 'SCHEDULED' | 'ALL';
 }
 
 export interface TasksResponse {
