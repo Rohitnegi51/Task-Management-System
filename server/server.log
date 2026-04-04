@@ -67,13 +67,29 @@ Server is running on port 5000
 ◇ injecting env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
 Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m
-ing env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ override existing { override: true }
 Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `ts-node src/index.ts`[39m
-◇ injecting env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injecting env (0) from .env // tip: ⌘ suppress logs { quiet: true }
 Server is running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ override existing { override: true }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `ts-node src/index.ts`[39m
+◇ injecting env (0) from .env // tip: ⌘ override existing { override: true }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+m
+◇ injecting env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `ts-node src/index.ts`[39m
 ◇ injecting env (0) from .env // tip: ⌘ enable debugging { debug: true }
@@ -81,21 +97,22 @@ Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `ts-node src/index.ts`[39m
-◇ injecting env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injecting env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
 Server is running on port 5000
-[32m[nodemon] clean exit - waiting for changes before restart[39m
-9m
+[32m[nodemon] clean exit - waiting fo◇ injecting env (0) from .en[32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `ts-node src/index.ts`[39m
-◇ injecting env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+◇ injecting env (0) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }
 Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m
-mon] clean exit - waiting for changes before restart[39m
+ enable debugging { debug: true }
+Server is running on port 5000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+000
+[32m[nodemon] clean exit - waiting for changes before restart[39m
 [32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `ts-node src/index.ts`[39m
-◇ injecting env (0) from .env // tip: ◈ encrypted .env [www.dotenvx.com]
+[32m[nodemon] starting `ts-n[32m[nodemon] restarti◇ injecting env (0) from .env // tip: ⌘ enable debugging { debug: true }
 Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m
-[32m[n[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `ts-node src/index.ts◇ inj◇ injecting env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
-Server is running on port 5000
+[32m[nodemon] restarting due to changes...[39m
+[32m[n[32m[nodemon] starting `ts-node src/index.ts◇ inj◇ injecting env (0) from .env // tip: ◈ encrypted .env [www.dotenvServer Server is running on port 5000
 [32m[nodemon] clean exit - waiting for changes before restart[39m

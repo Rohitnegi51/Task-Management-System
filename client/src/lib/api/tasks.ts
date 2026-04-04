@@ -67,3 +67,21 @@ export const syncMissedTasks = async (action: 'MOVE' | 'ARCHIVE'): Promise<{ mes
   const { data } = await apiClient.post('/tasks/missed/sync', { action });
   return data;
 };
+
+export interface TaskStatsResponse {
+  quickStats: {
+    completionRate: number;
+    mostProductiveDay: string;
+    totalCompleted: number;
+  };
+  chartData: {
+    date: string;
+    completed: number;
+    missed: number;
+  }[];
+}
+
+export const getTaskStats = async (): Promise<TaskStatsResponse> => {
+  const { data } = await apiClient.get('/tasks/stats');
+  return data;
+};

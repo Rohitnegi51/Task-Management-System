@@ -15,6 +15,7 @@ import {
   deleteTask,
   getMissedTasks,
   syncMissedTasks,
+  getTaskStats,
 } from '../controllers/taskController';
 import { syncMissedTasksSchema } from '../validations/taskValidations';
 
@@ -28,6 +29,9 @@ router.post('/', validateRequest({ body: createTaskSchema }), createTask);
 
 // GET /tasks
 router.get('/', validateRequest({ query: getTasksQuerySchema }), getTasks);
+
+// GET /tasks/stats
+router.get('/stats', getTaskStats);
 
 // GET /tasks/missed
 router.get('/missed', getMissedTasks);

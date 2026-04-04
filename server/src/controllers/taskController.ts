@@ -289,6 +289,96 @@ export const syncMissedTasks = async (
   }
 };
 
+export const getTaskStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const now = new Date();
+
+    const tasks = await prisma.task.findMany({
+      where: { userId },
+      select: { status: true, dueDate: true, updatedAt: true },
+    });
+
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter((t) => t.status === 'COMPLETED').length;
+    const completionRate =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    // Calculate most productive day
+    const completionCountsByDay: Record<string, number> = {};
+    let maxCompleted = 0;
+    let mostProductiveDay = 'N/A';
+
+    tasks.forEach((task) => {
+      if (task.status === 'COMPLETED' && task.updatedAt) {
+        const dayString = task.updatedAt.toLocaleDateString('en-US', {
+          weekday: 'long',
+        });
+        completionCountsByDay[dayString] =
+          (completionCountsByDay[dayString] || 0) + 1;
+        if (completionCountsByDay[dayString] > maxCompleted) {
+          maxCompleted = completionCountsByDay[dayString];
+          mostProductiveDay = dayString;
+        }
+      }
+    });
+
+    // Last 7 days data for the chart
+    const last7Days: { date: string; completed: number; missed: number }[] = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() - (6 - i),
+      );
+      const dateString = d.toISOString().split('T')[0]; // YYYY-MM-DD
+      const shortDate = d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+
+      // Count completed tasks updated on this day
+      const completedOnDay = tasks.filter(
+        (t) =>
+          t.status === 'COMPLETED' &&
+          t.updatedAt &&
+          t.updatedAt.toISOString().split('T')[0] === dateString,
+      ).length;
+
+      // Count missed tasks due on this day
+      const missedOnDay = tasks.filter(
+        (t) =>
+          (t.status === 'PENDING' ||
+            t.status === 'IN_PROGRESS' ||
+            t.status === 'ARCHIVED') &&
+          t.dueDate &&
+          t.dueDate.toISOString().split('T')[0] === dateString,
+      ).length;
+
+      last7Days.push({
+        date: shortDate,
+        completed: completedOnDay,
+        missed: missedOnDay,
+      });
+    }
+
+    res.json({
+      quickStats: {
+        completionRate,
+        mostProductiveDay,
+        totalCompleted: completedTasks,
+      },
+      chartData: last7Days,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteTask = async (
   req: Request,
   res: Response,
