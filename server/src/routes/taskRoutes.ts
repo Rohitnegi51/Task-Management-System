@@ -13,6 +13,7 @@ import {
   updateTask,
   toggleTaskStatus,
   deleteTask,
+  cleanupTasks
 } from '../controllers/taskController';
 
 const router = Router();
@@ -25,6 +26,9 @@ router.post('/', validateRequest({ body: createTaskSchema }), createTask);
 
 // GET /tasks
 router.get('/', validateRequest({ query: getTasksQuerySchema }), getTasks);
+
+// POST /cleanup
+router.post('/cleanup', cleanupTasks);
 
 // PATCH /tasks/:id
 router.patch(
