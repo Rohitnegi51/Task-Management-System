@@ -154,6 +154,87 @@ export const toggleTaskStatus = async (
   }
 };
 
+export const getMissedTasks = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+
+    // Calculate start of today in local time or UTC (assuming UTC for simplicity, or matching DB timezone)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const missedTasks = await prisma.task.findMany({
+      where: {
+        userId,
+        dueDate: {
+          lt: today, // less than start of today
+        },
+        status: {
+          notIn: ['COMPLETED', 'ARCHIVED'],
+        },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
+
+    res.json({ data: missedTasks });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const syncMissedTasks = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  try {
+    const userId = req.user!.userId;
+    const { action } = req.body;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Find tasks that need syncing to ensure they belong to user
+    const missedTasks = await prisma.task.findMany({
+      where: {
+        userId,
+        dueDate: { lt: today },
+        status: { notIn: ['COMPLETED', 'ARCHIVED'] },
+      },
+    });
+
+    const missedTaskIds = missedTasks.map((t) => t.id);
+
+    if (missedTaskIds.length === 0) {
+      res.json({ message: 'No missed tasks found', count: 0 });
+      return;
+    }
+
+    if (action === 'MOVE') {
+      const now = new Date();
+      await prisma.task.updateMany({
+        where: { id: { in: missedTaskIds } },
+        data: { dueDate: now },
+      });
+    } else if (action === 'ARCHIVE') {
+      await prisma.task.updateMany({
+        where: { id: { in: missedTaskIds } },
+        data: { status: 'ARCHIVED' },
+      });
+    }
+
+    res.json({
+      message: 'Missed tasks synced successfully',
+      count: missedTaskIds.length,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const deleteTask = async (
   req: Request,
   res: Response,

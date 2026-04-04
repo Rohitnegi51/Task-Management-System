@@ -13,7 +13,10 @@ import {
   updateTask,
   toggleTaskStatus,
   deleteTask,
+  getMissedTasks,
+  syncMissedTasks,
 } from '../controllers/taskController';
+import { syncMissedTasksSchema } from '../validations/taskValidations';
 
 const router = Router();
 
@@ -25,6 +28,16 @@ router.post('/', validateRequest({ body: createTaskSchema }), createTask);
 
 // GET /tasks
 router.get('/', validateRequest({ query: getTasksQuerySchema }), getTasks);
+
+// GET /tasks/missed
+router.get('/missed', getMissedTasks);
+
+// POST /tasks/missed/sync
+router.post(
+  '/missed/sync',
+  validateRequest({ body: syncMissedTasksSchema }),
+  syncMissedTasks,
+);
 
 // PATCH /tasks/:id
 router.patch(

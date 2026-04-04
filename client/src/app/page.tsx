@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Plus, Loader2, Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
+import { MissedTasksModal } from '@/components/MissedTasksModal';
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -123,18 +125,28 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
+  const totalTasks = data?.data.length || 0;
+  const completedTasks = data?.data.filter(t => t.status === 'COMPLETED').length || 0;
+  const progressPercentage = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-background">
+      <MissedTasksModal />
       <Navbar />
 
       <div className="flex-1 px-4 py-8 md:px-8 max-w-7xl mx-auto w-full">
         <main className="flex flex-col gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold tracking-tight">Today</h1>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <h1 className="text-3xl font-bold tracking-tight">Today</h1>
+              <p className="text-sm text-muted-foreground">{completedTasks} of {totalTasks} tasks completed.</p>
+            </div>
             <Button onClick={() => { setTaskToEdit(null); setIsModalOpen(true); }}>
               <Plus className="mr-2 h-4 w-4" /> New Task
             </Button>
           </div>
+
+          <Progress value={progressPercentage} className="h-2 w-full" />
 
           {/* Filters and Search Bar row */}
           <div className="flex flex-col sm:flex-row items-center gap-4 bg-muted/30 p-2 rounded-lg border border-border/50">

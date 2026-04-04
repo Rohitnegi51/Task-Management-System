@@ -4,7 +4,7 @@ export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'ARCHIVED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   dueDate?: string;
   createdAt: string;
@@ -55,4 +55,14 @@ export const toggleTaskStatus = async (id: string): Promise<Task> => {
 
 export const deleteTask = async (id: string): Promise<void> => {
   await apiClient.delete(`/tasks/${id}`);
+};
+
+export const getMissedTasks = async (): Promise<{ data: Task[] }> => {
+  const { data } = await apiClient.get('/tasks/missed');
+  return data;
+};
+
+export const syncMissedTasks = async (action: 'MOVE' | 'ARCHIVE'): Promise<{ message: string, count: number }> => {
+  const { data } = await apiClient.post('/tasks/missed/sync', { action });
+  return data;
 };

@@ -1,6 +1,11 @@
 import { z } from 'zod';
 
-const TaskStatusEnum = z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED']);
+const TaskStatusEnum = z.enum([
+  'PENDING',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'ARCHIVED',
+]);
 const TaskPriorityEnum = z.enum(['LOW', 'MEDIUM', 'HIGH']);
 
 export const createTaskSchema = z.object({
@@ -28,4 +33,8 @@ export const getTasksQuerySchema = z.object({
   limit: z.string().regex(/^\d+$/).optional().default('10').transform(Number),
   status: TaskStatusEnum.optional(),
   search: z.string().optional(),
+});
+
+export const syncMissedTasksSchema = z.object({
+  action: z.enum(['MOVE', 'ARCHIVE']),
 });
