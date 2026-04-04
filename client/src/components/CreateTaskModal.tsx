@@ -68,10 +68,11 @@ export function CreateTaskModal({
 
 
   const handleSubmit = (data: any) => {
-    // If dueDate is empty string, make it undefined
+    // If dueDate is empty string, make it null to properly clear it on the backend,
+    // otherwise format as ISO string or leave undefined for new tasks
     const cleanedData = {
       ...data,
-      dueDate: data.dueDate === '' ? undefined : (data.dueDate ? new Date(data.dueDate).toISOString() : undefined),
+      dueDate: data.dueDate === '' ? null : (data.dueDate ? new Date(data.dueDate).toISOString() : undefined),
     };
     onSubmit(cleanedData as TaskFormValues, taskToEdit?.id);
     form.reset();

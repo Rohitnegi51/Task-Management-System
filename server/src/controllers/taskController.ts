@@ -87,12 +87,11 @@ export const getTasks = async (
       }
     } else if (scope === 'SCHEDULED') {
       // Scheduled scope: strictly greater than end of today
-      // Wait, if it's tomorrow, its due date > endOfToday
       whereClause.dueDate = { gt: endOfToday };
 
-      // Exclude archived tasks from SCHEDULED view
+      // Exclude archived AND completed tasks from SCHEDULED view by default
       if (!status) {
-        whereClause.status = { not: 'ARCHIVED' };
+        whereClause.status = { notIn: ['ARCHIVED', 'COMPLETED'] };
       }
     }
 

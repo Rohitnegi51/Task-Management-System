@@ -69,11 +69,17 @@ export default function ScheduledDashboard() {
       queryClient.setQueryData(queryKey, (old: any) => {
         if (!old) return old;
 
-        const updatedData = old.data.map((task: Task) =>
+        let updatedData = old.data.map((task: Task) =>
           task.id === taskId
             ? { ...task, status: task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' }
             : task
         );
+
+        // If the user checked the box (making it COMPLETED) and isn't explicitly filtering by 'COMPLETED',
+        // remove it from the array so it vanishes instantly
+        if (statusFilter !== 'COMPLETED') {
+           updatedData = updatedData.filter((task: Task) => task.status !== 'COMPLETED');
+        }
 
         const priorityWeight: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
 
