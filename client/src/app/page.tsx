@@ -70,13 +70,34 @@ export default function Dashboard() {
 
       queryClient.setQueryData(queryKey, (old: any) => {
         if (!old) return old;
+
+        const updatedData = old.data.map((task: Task) =>
+          task.id === taskId
+            ? { ...task, status: task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' }
+            : task
+        );
+
+        // Re-sort the list instantly so the UI snaps into place based on backend rules:
+        // 1. Status (PENDING/IN_PROGRESS first, COMPLETED last)
+        // 2. Priority (HIGH, MEDIUM, LOW)
+        const priorityWeight: Record<string, number> = { HIGH: 3, MEDIUM: 2, LOW: 1 };
+
+        updatedData.sort((a: Task, b: Task) => {
+          // Sort by completion status first
+          const aIsCompleted = a.status === 'COMPLETED';
+          const bIsCompleted = b.status === 'COMPLETED';
+
+          if (aIsCompleted !== bIsCompleted) {
+            return aIsCompleted ? 1 : -1;
+          }
+
+          // If completion status is the same, sort by priority
+          return priorityWeight[b.priority] - priorityWeight[a.priority];
+        });
+
         return {
           ...old,
-          data: old.data.map((task: Task) =>
-            task.id === taskId
-              ? { ...task, status: task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED' }
-              : task
-          )
+          data: updatedData
         };
       });
 
@@ -164,7 +185,7 @@ export default function Dashboard() {
             </div>
           ) : (
             <>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col gap-3 mt-4">
                 {data?.data.map((task) => (
                   <TaskCard
                     key={task.id}

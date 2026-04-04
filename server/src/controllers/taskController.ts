@@ -57,7 +57,16 @@ export const getTasks = async (
         where: whereClause,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: [
+          // Sort by status: PENDING -> IN_PROGRESS -> COMPLETED
+          { status: 'asc' },
+          // Then by priority: HIGH -> MEDIUM -> LOW (descending order essentially, since HIGH is lexicographically 'H' < 'M' < 'L'? Actually, enum sorting in Prisma Postgres is by definition order in schema if it's a native enum, or alphabetical if it's text. Let's sort by priority).
+          // Wait, 'HIGH' vs 'LOW'. Alphabetical: H, L, M. That's wrong.
+          // In Prisma, Enums are sorted by the order they are defined in the schema.
+          // Schema: LOW, MEDIUM, HIGH. So 'desc' will sort HIGH -> MEDIUM -> LOW.
+          { priority: 'desc' },
+          { createdAt: 'desc' },
+        ],
       }),
       prisma.task.count({ where: whereClause }),
     ]);
