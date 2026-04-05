@@ -13,7 +13,7 @@ export const createTaskSchema = z.object({
   description: z.string().optional(),
   status: TaskStatusEnum.optional(),
   priority: TaskPriorityEnum.optional(),
-  dueDate: z.string().datetime().optional(), // Expects ISO-8601 string
+  dueDate: z.string().datetime().nullable().optional(), // Expects ISO-8601 string or null
 });
 
 export const updateTaskSchema = z.object({
@@ -21,7 +21,7 @@ export const updateTaskSchema = z.object({
   description: z.string().optional(),
   status: TaskStatusEnum.optional(),
   priority: TaskPriorityEnum.optional(),
-  dueDate: z.string().datetime().optional(),
+  dueDate: z.string().datetime().nullable().optional(),
 });
 
 export const taskIdParamsSchema = z.object({

@@ -8,7 +8,7 @@ export const taskSchema = z.object({
   description: z.string().optional(),
   status: TaskStatusEnum.default('PENDING'),
   priority: TaskPriorityEnum.default('MEDIUM'),
-  dueDate: z.string().optional().refine((val) => !val || !isNaN(Date.parse(val)), {
+  dueDate: z.string().nullable().optional().refine((val) => !val || !isNaN(Date.parse(val)), {
     message: "Invalid date format",
   }),
 });

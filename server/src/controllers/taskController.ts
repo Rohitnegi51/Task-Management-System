@@ -54,6 +54,15 @@ export const getTasks = async (
 
     // Set up the scope logic for filtering due dates
     const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      0,
+      0,
+      0,
+      0,
+    );
     const endOfToday = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -66,11 +75,20 @@ export const getTasks = async (
 
     if (scope === 'TODAY') {
       whereClause.OR = whereClause.OR || [];
-      // Today scope: due date is null, OR due date is today or earlier
-      // Actually, if it's earlier, it should have been caught by "Missed Tasks"
-      // But we will show them here just in case they ignored the modal.
+
+      // Today scope: due date is null, OR due date is EXACTLY today.
+      // This prevents yesterday's completed tasks from polluting the dashboard,
+      // while keeping them in the database for the Progress Report.
       const dateCondition: Prisma.TaskWhereInput = {
-        OR: [{ dueDate: null }, { dueDate: { lte: endOfToday } }],
+        OR: [
+          { dueDate: null },
+          {
+            dueDate: {
+              gte: startOfToday,
+              lte: endOfToday,
+            },
+          },
+        ],
       };
 
       // Merge dateCondition into whereClause
@@ -229,7 +247,11 @@ export const getMissedTasks = async (
           notIn: ['COMPLETED', 'ARCHIVED'],
         },
       },
-      orderBy: { dueDate: 'asc' },
+      orderBy: [
+        { priority: 'desc' }, // HIGH -> MEDIUM -> LOW
+        { createdAt: 'desc' }, // Most recent first
+      ],
+      take: 10, // Only show top 10 missed tasks to prevent overwhelming modal
     });
 
     res.json({ data: missedTasks });
@@ -250,38 +272,53 @@ export const syncMissedTasks = async (
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Find tasks that need syncing to ensure they belong to user
-    const missedTasks = await prisma.task.findMany({
+    // Find ALL tasks that need syncing
+    const allMissedTasks = await prisma.task.findMany({
       where: {
         userId,
         dueDate: { lt: today },
         status: { notIn: ['COMPLETED', 'ARCHIVED'] },
       },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
 
-    const missedTaskIds = missedTasks.map((t) => t.id);
-
-    if (missedTaskIds.length === 0) {
+    if (allMissedTasks.length === 0) {
       res.json({ message: 'No missed tasks found', count: 0 });
       return;
     }
 
+    // Split into Top 10 vs Excess
+    const top10Tasks = allMissedTasks.slice(0, 10);
+    const excessTasks = allMissedTasks.slice(10);
+
+    const top10Ids = top10Tasks.map((t) => t.id);
+    const excessIds = excessTasks.map((t) => t.id);
+
+    // Process Top 10 based on user action
     if (action === 'MOVE') {
       const now = new Date();
       await prisma.task.updateMany({
-        where: { id: { in: missedTaskIds } },
+        where: { id: { in: top10Ids } },
         data: { dueDate: now },
       });
     } else if (action === 'ARCHIVE') {
       await prisma.task.updateMany({
-        where: { id: { in: missedTaskIds } },
+        where: { id: { in: top10Ids } },
+        data: { status: 'ARCHIVED' },
+      });
+    }
+
+    // Process Excess: Automatically archive anything beyond the top 10 so it stops piling up
+    if (excessIds.length > 0) {
+      await prisma.task.updateMany({
+        where: { id: { in: excessIds } },
         data: { status: 'ARCHIVED' },
       });
     }
 
     res.json({
       message: 'Missed tasks synced successfully',
-      count: missedTaskIds.length,
+      count: top10Ids.length,
     });
   } catch (error) {
     next(error);
