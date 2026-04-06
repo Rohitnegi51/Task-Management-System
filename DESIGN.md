@@ -39,6 +39,18 @@ The database consists of three main entities:
 
 ### 2. Task Management & "Today" View
 
+**Task Creation Step:**
+1.  **Client:** The user clicks "Add Task", filling out the form (title, priority, optional due date). Zod validates the input.
+2.  **Network:** A `POST` request is sent to `/tasks` with the JSON payload.
+3.  **Server:** The backend validates the payload and creates a new record in the database, attaching it to the authenticated user's ID.
+4.  **Client:** Upon success, TanStack Query invalidates the tasks cache, immediately fetching and displaying the newly created task.
+
+**Task Deletion Step:**
+1.  **Client:** The user clicks the delete (trash can) icon on a task.
+2.  **Local Cache:** The frontend optimistically removes the task from the view immediately for a snappy user experience.
+3.  **Network:** A `DELETE` request is sent to `/tasks/:id`.
+4.  **Server:** The backend verifies ownership and deletes the task from the database. If it fails, the frontend rolls back the optimistic update and shows an error.
+
 **Fetching Today's Tasks Step:**
 1.  **Client:** Upon loading the Dashboard, TanStack Query triggers a `GET` to `/tasks?scope=TODAY`.
 2.  **Server:** The `taskController` receives the request. The `taskService` queries Prisma for tasks where `userId` matches the authenticated user and `dueDate` is less than or equal to the end of the current day in the user's timezone.
